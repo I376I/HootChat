@@ -2,33 +2,144 @@ const express = require('express')
 const app = express()
 const fs = require("fs")
 const port = 3000
-var mysql      = require('mysql');
+const { Sequelize, DataTypes } = require('sequelize');
 
 app.use(express.json())
 
-var connection = mysql.createConnection({
-  host     : '127.0.0.1',
-  user     : 'todo',
-  password : 'password',
-  database : 'todo'
+
+
+const sequelize = new Sequelize(
+   'MsgApp',
+   'MsgApp',
+   'password',
+    {
+      host: '127.0.0.1',
+      dialect: 'mysql'
+    }
+  );
+
+sequelize.authenticate().then(() => {
+   console.log('Connection has been established successfully.');
+}).catch((error) => {
+   console.error('Unable to connect to the database: ', error);
 });
-connection.connect();
+
+
+
+
+
+
+const Users = sequelize.define('User', {
+  // Model attributes are defined here
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
+  name: {
+    type: DataTypes.STRING(20),
+    allowNull: false
+    // allowNull defaults to true
+  }
+}, {
+  tableName: 'users',
+  createdAt: false,
+  updatedAt: false,
+  timestamps: false
+  // Other model options go here
+});
+
+Users.sync({alter: true});
+
+// const me = Users.create({name: "tollak"});
+
+
+const Chats = sequelize.define('Chats', {
+  // Model attributes are defined here
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
+  name: {
+    type: DataTypes.STRING(20),
+    allowNull: false
+    // allowNull defaults to true
+  }
+}, {
+  tableName: 'chats',
+  createdAt: false,
+  updatedAt: false,
+  timestamps: false
+  // Other model options go here
+});
+
+Chats.sync({alter: true});
+
+// Chats.create({name: "Owen Tollak"});
+
+const Groups = sequelize.define('Groups', {
+  // Model attributes are defined here
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
+  groupId: {
+    type: DataTypes.UUID,
+    allowNull: false
+    // allowNull defaults to true
+  },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false
+    // allowNull defaults to true
+  }
+}, {
+  tableName: 'groupUsers',
+  createdAt: false,
+  updatedAt: false,
+  timestamps: false
+  
+  // Other model options go here
+});
+
+Groups.sync({alter: true});
+
+const Messages = sequelize.define('Messages', {
+  // Model attributes are defined here
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
+  message: {
+    type: DataTypes.STRING(2048),
+    allowNull: false
+    // allowNull defaults to true
+  },
+  chatId: {
+    type: DataTypes.UUID,
+    allowNull: false
+  }
+}, {
+  tableName: 'messages',
+  createdAt: false,
+  updatedAt: false,
+  timestamps: false
+  
+  // Other model options go here
+});
+
+Groups.sync({alter: true});
+
+
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
 
-app.get('/', (req, res) => {
-  // const test = {"hello":"test"};
-  
-  // res.send(JSON.stringify(test));
-  // console.log("/ recieved");
-  console.log("/path called")
-  fs.readFile("data.json", "utf-8", (err, data) =>{
-    res.send(data);
-  });
-})
 app.get('/get', (req, res) => {
   connection.query('SELECT * FROM todos', function (error, results, fields) {
     if (error) throw error;
@@ -74,5 +185,5 @@ app.listen(port, () => {
 })
 
 process.on("exit", (code) => {
-  connection.end();
+  
 })
